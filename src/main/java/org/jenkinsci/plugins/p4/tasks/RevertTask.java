@@ -13,23 +13,13 @@ import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
 import jenkins.security.Roles;
 
-public class UnshelveTask extends AbstractTask implements FileCallable<Boolean>, Serializable {
+public class RevertTask extends AbstractTask implements FileCallable<Boolean>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private static Logger logger = Logger.getLogger(UnshelveTask.class.getName());
+	private static Logger logger = Logger.getLogger(RevertTask.class.getName());
 
-	private final String resolve;
-	private final boolean revert;
-	private int shelf;
-
-	public UnshelveTask(String resolve, boolean revert) {
-		this.resolve = resolve;
-		this.revert = revert;
-	}
-
-	public void setShelf(int shelf) {
-		this.shelf = shelf;
+	public RevertTask() {
 	}
 
 	@Override
@@ -40,13 +30,11 @@ public class UnshelveTask extends AbstractTask implements FileCallable<Boolean>,
 				return false;
 			}
 
-			p4.unshelveFiles(shelf, revert);
-
-			p4.resolveFiles(resolve);
+			p4.revertFiles();
 
 		} catch (Exception e) {
 			p4.log("(p4):stop:exception\n");
-			String msg = "Unable to publish workspace: " + e;
+			String msg = "Unable to revert workspace: " + e;
 			logger.warning(msg);
 			throw e;
 		} finally {

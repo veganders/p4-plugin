@@ -645,6 +645,18 @@ public class ClientHelper extends ConnectionHelper {
 	 * @throws Exception
 	 */
 	public void unshelveFiles(int review) throws Exception {
+		unshelveFiles(review, true);
+	}
+
+	/**
+	 * Unshelve review into workspace. Workspace is sync'ed to head first then
+	 * review unshelved.
+	 *
+	 * @param review
+	 * @param revert
+	 * @throws Exception
+	 */
+	public void unshelveFiles(int review, boolean revert) throws Exception {
 		// skip if review is 0 or less
 		if (review < 1) {
 			log("P4 Task: skipping review: " + review);
@@ -677,11 +689,13 @@ public class ClientHelper extends ConnectionHelper {
 			}
 		}
 
-		// Remove opened files from have list.
-		RevertFilesOptions rOpts = new RevertFilesOptions();
-		rOpts.setNoClientRefresh(true);
-		List<IFileSpec> rvtMsg = iclient.revertFiles(files, rOpts);
-		validateFileSpecs(rvtMsg, "file(s) not opened on this client");
+		if (revert) {
+			// Remove opened files from have list.
+			RevertFilesOptions rOpts = new RevertFilesOptions();
+			rOpts.setNoClientRefresh(true);
+			List<IFileSpec> rvtMsg = iclient.revertFiles(files, rOpts);
+			validateFileSpecs(rvtMsg, "file(s) not opened on this client");
+		}
 		log("... duration: " + timer.toString());
 	}
 
@@ -716,6 +730,23 @@ public class ClientHelper extends ConnectionHelper {
 		validateFileSpecs(rsvMsg, "no file(s) to resolve");
 
 		log("... duration: " + timer.toString());
+	}
+
+	/**
+	 * Revert files in workspace
+	 * 
+	 * @throws Exception
+	 */
+	public void revertFiles() throws Exception {
+		List<IFileSpec> files;
+		String path = iclient.getRoot() + "/...";
+		files = FileSpecBuilder.makeFileSpecList(path);
+
+		// Reverting files and deleting added files
+		RevertFilesOptions rOpts = new RevertFilesOptions();
+		rOpts.setWipeAddFiles(true);
+		List<IFileSpec> rvtMsg = iclient.revertFiles(files, rOpts);
+		validateFileSpecs(rvtMsg, "file(s) not opened on this client");
 	}
 
 	/**
